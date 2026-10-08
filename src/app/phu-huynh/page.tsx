@@ -159,7 +159,7 @@ export default function PhuHuynhPage() {
 
         <div className="bg-white p-3 rounded-2xl shadow-md text-center shrink-0">
           <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent('https://hoclieutoan4.vn/bai-hoc/quy-dong-mau-so-cac-phan-so')}`}
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent('https://hoclieutoanlop4.com/bai-hoc/quy-dong-mau-so-cac-phan-so')}`}
             alt="QR Code bài học"
             className="w-28 h-28 mx-auto"
           />

@@ -62,8 +62,8 @@ export default function Footer() {
                 <a href="tel:1900TOAN4" className="flex items-center gap-1.5 hover:text-blue-400 transition-colors">
                   <Phone className="w-4 h-4 text-emerald-400" /> Hotline: 1900-TOAN4
                 </a>
-                <a href="mailto:hotro@hoclieutoan4.vn" className="flex items-center gap-1.5 hover:text-blue-400 transition-colors">
-                  <Mail className="w-4 h-4 text-amber-400" /> hotro@hoclieutoan4.vn
+                <a href="mailto:hotro@hoclieutoanlop4.com" className="flex items-center gap-1.5 hover:text-blue-400 transition-colors">
+                  <Mail className="w-4 h-4 text-amber-400" /> hotro@hoclieutoanlop4.com
                 </a>
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function Footer() {
             </div>
             <div className="bg-white p-2.5 rounded-2xl inline-block shadow-lg ring-4 ring-blue-500/10">
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent('https://hoclieutoan4.vn')}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent('https://hoclieutoanlop4.com')}`}
                 alt="QR Code Học liệu Toán 4"
                 className="w-24 h-24"
               />

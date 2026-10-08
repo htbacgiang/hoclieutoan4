@@ -1,4 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import './Category';
+import './User';
 
 export interface ILesson extends Document {
   title: string;

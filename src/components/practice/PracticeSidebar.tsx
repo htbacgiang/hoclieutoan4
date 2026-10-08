@@ -136,9 +136,9 @@ export default function PracticeSidebar({
   const activeCategory = categories.find((c) => c.slug === activeTopicId) || categories[0];
 
   return (
-    <aside className="w-full lg:sticky lg:top-[128px]">
+    <aside className="w-full lg:sticky lg:top-[128px] mt-5 md:mt-0">
       {/* Mobile Toggle Bar */}
-      <div className="lg:hidden mb-2 sm:mb-4 px-3 sm:px-0">
+      <div className="lg:hidden mb-3 sm:mb-4 px-3 sm:px-0">
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
           className="w-full flex items-center justify-between p-2.5 sm:p-4 bg-white rounded-xl sm:rounded-2xl border border-blue-100 shadow-2xs text-[#0D4285] font-bold text-xs sm:text-sm"
@@ -251,8 +251,8 @@ export default function PracticeSidebar({
                               onSelectTopic(category.slug, ex.id);
                             }}
                             className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${isExActive
-                                ? 'bg-blue-600 text-white font-bold shadow-xs'
-                                : 'text-slate-600 hover:text-[#1261B5] hover:bg-blue-50/80'
+                              ? 'bg-blue-600 text-white font-bold shadow-xs'
+                              : 'text-slate-600 hover:text-[#1261B5] hover:bg-blue-50/80'
                               }`}
                           >
                             <Diamond

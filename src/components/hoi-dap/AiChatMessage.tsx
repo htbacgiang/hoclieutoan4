@@ -100,17 +100,15 @@ export default function AiChatMessage({
 
   return (
     <div
-      className={`flex items-start gap-3 w-full my-4 ${
-        isUser ? 'flex-row-reverse' : 'flex-row'
-      }`}
+      className={`flex items-start gap-3 w-full my-4 ${isUser ? 'flex-row-reverse' : 'flex-row'
+        }`}
     >
       {/* Avatar */}
       <div
-        className={`w-9 h-9 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-sm border ${
-          isUser
-            ? 'bg-[#1261B5] border-blue-400'
-            : 'bg-gradient-to-tr from-[#1261B5] via-[#2F80ED] to-cyan-500 border-cyan-300'
-        }`}
+        className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border ${isUser
+            ? 'bg-[#1261B5] border-blue-400 text-white'
+            : 'bg-blue-50 border-blue-200 overflow-hidden p-0.5'
+          }`}
       >
         {isUser ? (
           userAvatar ? (
@@ -120,40 +118,25 @@ export default function AiChatMessage({
               className="w-full h-full rounded-2xl object-cover"
             />
           ) : (
-            <User className="w-5 h-5" />
+            <User className="w-5 h-5 text-white" />
           )
         ) : (
-          <Bot className="w-5 h-5 text-white" />
+          <img
+            src="/images/hero-parts/robot.png"
+            alt="Trợ lý Robot AI"
+            className="w-full h-full object-contain"
+          />
         )}
       </div>
 
       {/* Message Content Bubble */}
-      <div className={`space-y-2 max-w-[85%] sm:max-w-[78%]`}>
-        {/* Name Header */}
-        <div
-          className={`text-[11px] font-bold text-[#6680A3] flex items-center gap-1.5 ${
-            isUser ? 'justify-end' : 'justify-start'
-          }`}
-        >
-          <span>{isUser ? userName : '🤖 Trợ lý học tập'}</span>
-          {message.mode && !isUser && (
-            <span className="px-1.5 py-0.2 rounded-md bg-blue-50 text-[10px] text-[#1261B5] font-extrabold uppercase">
-              {message.mode === 'hint'
-                ? 'Gợi ý'
-                : message.mode === 'explain'
-                ? 'Giải thích'
-                : 'Hỏi bài'}
-            </span>
-          )}
-        </div>
-
+      <div className="space-y-1.5 max-w-[85%] sm:max-w-[78%]">
         {/* Bubble */}
         <div
-          className={`p-4 rounded-3xl text-sm leading-relaxed shadow-2xs border ${
-            isUser
+          className={`p-4 rounded-3xl text-sm leading-relaxed shadow-2xs border ${isUser
               ? 'bg-[#E7F3FF] text-[#123B72] border-blue-200/80 rounded-tr-none font-medium'
               : 'bg-white text-[#123B72] border-slate-200/90 rounded-tl-none font-normal'
-          }`}
+            }`}
         >
           {isUser ? (
             <div className="space-y-2">
@@ -215,22 +198,20 @@ export default function AiChatMessage({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setFeedback('up')}
-                className={`p-1.5 rounded-lg transition-colors ${
-                  feedback === 'up'
+                className={`p-1.5 rounded-lg transition-colors ${feedback === 'up'
                     ? 'bg-emerald-50 text-emerald-600'
                     : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
-                }`}
+                  }`}
                 title="Hữu ích"
               >
                 <ThumbsUp className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => setFeedback('down')}
-                className={`p-1.5 rounded-lg transition-colors ${
-                  feedback === 'down'
+                className={`p-1.5 rounded-lg transition-colors ${feedback === 'down'
                     ? 'bg-red-50 text-red-500'
                     : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
-                }`}
+                  }`}
                 title="Chưa hữu ích"
               >
                 <ThumbsDown className="w-3.5 h-3.5" />
@@ -261,27 +242,6 @@ export default function AiChatMessage({
             </button>
           </div>
         )}
-
-        {/* Suggested Follow-ups */}
-        {!isUser &&
-          !isTyping &&
-          message.suggestedFollowUps &&
-          message.suggestedFollowUps.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 pt-2 animate-fade-in">
-              <span className="text-[10px] font-bold text-[#6680A3] flex items-center gap-1 w-full mb-0.5">
-                <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Gợi ý câu hỏi tiếp theo:
-              </span>
-              {message.suggestedFollowUps.map((chip, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => onSelectFollowUp && onSelectFollowUp(chip)}
-                  className="px-3 py-1.5 rounded-xl bg-[#E7F3FF] hover:bg-blue-100 text-[#1261B5] text-xs font-bold border border-blue-200/60 transition-all text-left active:scale-98"
-                >
-                  {chip}
-                </button>
-              ))}
-            </div>
-          )}
       </div>
     </div>
   );

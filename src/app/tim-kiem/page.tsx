@@ -16,6 +16,7 @@ import {
   X,
   Compass,
   LayoutGrid,
+  Play,
 } from 'lucide-react';
 
 interface LessonItem {
@@ -23,6 +24,8 @@ interface LessonItem {
   title: string;
   slug: string;
   description: string;
+  thumbnail?: string;
+  duration?: number;
   categoryId?: { name: string; slug: string; color?: string };
 }
 
@@ -345,28 +348,47 @@ function SearchContent() {
                   {results.lessons.map((lesson) => (
                     <div
                       key={lesson._id}
-                      className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md hover:border-blue-300 transition-all flex flex-col justify-between space-y-4 group"
+                      className="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-blue-300 transition-all flex flex-col justify-between group"
                     >
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-700 text-[11px] font-extrabold uppercase">
-                            {lesson.categoryId?.name || 'BÀI GIẢNG'}
-                          </span>
+                      <div>
+                        {/* Thumbnail Image Header */}
+                        <div className="relative aspect-video w-full bg-slate-100 overflow-hidden border-b border-slate-100">
+                          <img
+                            src={lesson.thumbnail && lesson.thumbnail.trim() !== '' ? lesson.thumbnail : '/illustrations/kham-pha.jpg'}
+                            alt={lesson.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/illustrations/kham-pha.jpg';
+                            }}
+                          />
+                          <div className="absolute top-3 left-3 px-2.5 py-1 rounded-xl bg-white/90 backdrop-blur-xs text-blue-700 text-[11px] font-extrabold uppercase shadow-sm border border-blue-100/80 flex items-center gap-1.5">
+                            <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                            <span>{lesson.categoryId?.name || 'BÀI GIẢNG'}</span>
+                          </div>
+                          {lesson.duration && (
+                            <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/75 text-white text-[11px] font-bold flex items-center gap-1 backdrop-blur-xs">
+                              <Play className="w-3 h-3 fill-white" />
+                              <span>{lesson.duration} phút</span>
+                            </div>
+                          )}
                         </div>
 
-                        <h3 className="font-extrabold text-base text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
-                          {lesson.title}
-                        </h3>
+                        {/* Title & Description */}
+                        <div className="p-5 space-y-2">
+                          <h3 className="font-extrabold text-base text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                            {lesson.title}
+                          </h3>
 
-                        <p className="text-xs text-slate-500 font-medium line-clamp-3 leading-relaxed">
-                          {lesson.description || 'Bài giảng tương tác sinh động Toán lớp 4.'}
-                        </p>
+                          <p className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed">
+                            {lesson.description || 'Bài giảng tương tác sinh động Toán lớp 4.'}
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+                      <div className="p-5 pt-0 flex items-center gap-2">
                         <Link
                           href={`/kham-pha?slug=${lesson.slug}`}
-                          className="flex-1 text-center py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition shadow-xs flex items-center justify-center gap-1"
+                          className="flex-1 text-center py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition shadow-xs flex items-center justify-center gap-1.5"
                         >
                           <Compass className="w-3.5 h-3.5" />
                           <span>Học bài giảng</span>
@@ -374,7 +396,7 @@ function SearchContent() {
 
                         <Link
                           href={`/luyen-tap?slug=${lesson.slug}`}
-                          className="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-xs transition flex items-center justify-center gap-1"
+                          className="py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-xs transition flex items-center justify-center gap-1.5"
                           title="Làm bài tập bài này"
                         >
                           <PenTool className="w-3.5 h-3.5" />

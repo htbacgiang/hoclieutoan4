@@ -99,6 +99,19 @@ export default function Header() {
     setShowLiveDropdown(false);
   }, [pathname]);
 
+  // Prevent background body scroll when mobile menu drawer is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
+
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -165,23 +178,23 @@ export default function Header() {
   const userAvatar = currentUser?.avatar && currentUser.avatar.trim() !== '' ? currentUser.avatar : defaultAvatar;
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-blue-100 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-blue-100 shadow-xs transition-all">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-3">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-3">
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 shrink-0 group">
-            <div className="w-11 h-11 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 relative group-hover:scale-105 transition-transform">
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 shrink-0 group">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 relative group-hover:scale-105 transition-transform">
               <img
                 src="/logo.png"
                 alt="Toán 4 Logo"
-                className="w-11 h-11 rounded-2xl object-contain shrink-0"
+                className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-contain shrink-0"
               />
-              <span className="absolute -top-1 -right-1 text-yellow-300 text-xs font-bold">★</span>
+              <span className="absolute -top-1 -right-1 text-yellow-300 text-[10px] sm:text-xs font-bold">★</span>
             </div>
             <div>
-              <div className="text-[11px] font-semibold text-slate-500 tracking-tight">Thư viện học liệu số</div>
-              <div className="text-2xl font-black text-blue-600 tracking-tight leading-none">
+              <div className="text-[10px] sm:text-[11px] font-semibold text-slate-500 tracking-tight leading-tight">Thư viện học liệu số</div>
+              <div className="text-xl sm:text-2xl font-black text-blue-600 tracking-tight leading-none">
                 Toán 4
               </div>
             </div>
@@ -418,110 +431,158 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {isMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-4 shadow-xl animate-in slide-in-from-top duration-200">
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <input
-              type="text"
-              placeholder="Tìm bài học, chủ đề..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-100 text-xs font-medium focus:outline-none"
-            />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-          </form>
+      {/* Mobile Slide-Over Drawer (From Left, 80% screen width, Full Screen Height with Slide In/Out Animation) */}
+      <div
+        className={`lg:hidden fixed inset-0 z-[9999] w-screen h-screen h-dvh transition-all duration-300 ${
+          isMenuOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0 delay-200'
+        }`}
+      >
+        {/* Backdrop Overlay */}
+        <div
+          className={`fixed inset-0 w-screen h-screen h-dvh bg-slate-900/60 backdrop-blur-sm z-[9999] transition-opacity duration-300 ease-in-out ${
+            isMenuOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={() => setIsMenuOpen(false)}
+        />
 
-          {/* Navigation Links */}
-          <nav className="space-y-1">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-xs ${pathname === link.href ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-                    }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{link.name}</span>
-                </Link>
-              );
-            })}
-          </nav>
+        {/* Drawer Panel (80% width, max 360px, Full Screen Height) */}
+        <div
+          className={`fixed top-0 left-0 bottom-0 w-[80%] max-w-xs h-screen h-dvh bg-white shadow-2xl flex flex-col justify-between z-[10000] transition-transform duration-300 ease-in-out overflow-y-auto ${
+            isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+            
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <Link href="/" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                  <img src="/logo.png" alt="Toán 4" className="w-9 h-9 rounded-xl object-contain" />
+                </div>
+                <div>
+                  <div className="text-[10px] font-semibold text-slate-500 leading-tight">Thư viện học liệu</div>
+                  <div className="text-lg font-black text-blue-600 leading-none">Toán 4</div>
+                </div>
+              </Link>
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors"
+                aria-label="Đóng menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-          {/* Mobile Auth User section */}
-          <div className="pt-3 border-t border-slate-100">
-            {currentUser ? (
-              <div className="space-y-3 bg-blue-50/60 p-3.5 rounded-2xl border border-blue-100">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={userAvatar}
-                    alt={currentUser.name}
-                    className="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500/30 shrink-0"
-                  />
-                  <div className="overflow-hidden">
-                    <p className="text-xs font-bold text-slate-900 truncate">
-                      Xin chào, {currentUser.name}
-                    </p>
-                    <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md text-[10px] font-bold">
-                      {getRoleLabel(currentUser.role)}
-                    </span>
+            {/* Search & Navigation Links */}
+            <div className="p-4 flex-1 space-y-4 overflow-y-auto">
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <input
+                  type="text"
+                  placeholder="Tìm bài học, chủ đề..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-100 text-xs font-medium focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/30 transition-all border border-slate-200/60"
+                />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              </form>
+
+              <nav className="space-y-1">
+                {navLinks.map((link) => {
+                  const Icon = link.icon;
+                  const isActive = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`flex items-center gap-3 px-3.5 py-3 rounded-xl font-bold text-xs transition-all ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'text-slate-700 hover:bg-blue-50 hover:text-blue-600'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{link.name}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Bottom Auth / User Panel */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+              {currentUser ? (
+                <div className="space-y-3 bg-white p-3 rounded-2xl border border-blue-100 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={userAvatar}
+                      alt={currentUser.name}
+                      className="w-9 h-9 rounded-full object-cover ring-2 ring-blue-500/30 shrink-0"
+                    />
+                    <div className="overflow-hidden">
+                      <p className="text-xs font-bold text-slate-900 truncate">
+                        {currentUser.name}
+                      </p>
+                      <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md text-[10px] font-bold">
+                        {getRoleLabel(currentUser.role)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <Link
+                      href="/tai-khoan"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-50 text-blue-600 font-bold text-xs rounded-xl border border-blue-200"
+                    >
+                      <UserCheck className="w-3.5 h-3.5" />
+                      <span>Cá nhân</span>
+                    </Link>
+
+                    {['ADMIN', 'SUPER_ADMIN'].includes(currentUser.role) && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center justify-center gap-1.5 py-2 px-3 bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-xs"
+                      >
+                        <LayoutDashboard className="w-3.5 h-3.5" />
+                        <span>Admin</span>
+                      </Link>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="col-span-2 flex items-center justify-center gap-1.5 py-2 px-3 bg-red-50 text-red-600 font-bold text-xs rounded-xl border border-red-200"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Đăng xuất</span>
+                    </button>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-1">
+              ) : (
+                <div className="grid grid-cols-2 gap-2.5">
                   <Link
-                    href="/tai-khoan"
+                    href="/dang-nhap"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 bg-white text-blue-600 font-bold text-xs rounded-xl border border-blue-200 shadow-xs"
+                    className="py-2.5 text-center text-xs font-bold text-blue-600 bg-white border border-blue-200 rounded-xl shadow-2xs hover:bg-blue-50 transition-colors"
                   >
-                    <UserCheck className="w-3.5 h-3.5" />
-                    <span>Cá nhân</span>
+                    Đăng nhập
                   </Link>
-
-                  {['ADMIN', 'SUPER_ADMIN'].includes(currentUser.role) && (
-                    <Link
-                      href="/admin"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-center gap-1.5 py-2 px-3 bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-xs"
-                    >
-                      <LayoutDashboard className="w-3.5 h-3.5" />
-                      <span>Admin</span>
-                    </Link>
-                  )}
-
-                  <button
-                    onClick={handleLogout}
-                    className="col-span-2 flex items-center justify-center gap-1.5 py-2 px-3 bg-red-50 text-red-600 font-bold text-xs rounded-xl border border-red-200"
+                  <Link
+                    href="/dang-ky"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="py-2.5 text-center text-xs font-bold text-white bg-blue-600 rounded-xl shadow-sm hover:bg-blue-700 transition-colors"
                   >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Đăng xuất</span>
-                  </button>
+                    Đăng ký
+                  </Link>
                 </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <Link
-                  href="/dang-nhap"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="py-2.5 text-center text-xs font-bold text-blue-600 bg-white border border-blue-200 rounded-xl"
-                >
-                  Đăng nhập
-                </Link>
-                <Link
-                  href="/dang-ky"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="py-2.5 text-center text-xs font-bold text-white bg-blue-600 rounded-xl shadow-sm"
-                >
-                  Đăng ký
-                </Link>
-              </div>
-            )}
+              )}
+            </div>
+
           </div>
         </div>
-      )}
     </header>
   );
 }

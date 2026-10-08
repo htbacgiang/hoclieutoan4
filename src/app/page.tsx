@@ -3,6 +3,7 @@ import Image from 'next/image';
 import connectToDatabase from '@/lib/mongodb';
 import Lesson from '@/models/Lesson';
 import Resource from '@/models/Resource';
+import Category from '@/models/Category';
 import {
   Search,
   ArrowRight,
@@ -85,24 +86,30 @@ export default async function HomePage() {
     <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
 
       {/* 1. HERO BANNER SECTION (COMPACT & BALANCED PANORAMA) */}
-      <section className="relative w-full rounded-3xl overflow-hidden shadow-xl border border-blue-200 bg-[#70C5FF]">
+      <section className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-blue-200 bg-[#70C5FF]">
         {/* Background Landscape with balanced height */}
-        <div className="relative w-full h-[260px] sm:h-[300px] lg:h-[340px] overflow-hidden flex flex-col items-center justify-between">
+        <div className="relative w-full h-[240px] xs:h-[260px] sm:h-[300px] lg:h-[340px] overflow-hidden flex flex-col items-center justify-start">
           <img
             src="/images/hero-bg.jpg"
             alt="Nền Thư viện học liệu số Toán 4"
             className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
           />
 
-          {/* Center Title and Subtitle (Shifted downwards) */}
-          <div className="relative z-10 text-center pt-5 sm:pt-7 lg:pt-9 px-2 max-w-xl mx-auto select-none">
-            <div className="w-full max-w-[500px] sm:max-w-[580px] mx-auto">
+          {/* Center Title, Subtitle and Search Bar */}
+          <div className="relative z-30 text-center pt-2.5 xs:pt-3.5 sm:pt-6 lg:pt-8 px-2 max-w-xl mx-auto select-none w-full flex flex-col items-center">
+            <div className="w-full max-w-[320px] xs:max-w-[420px] sm:max-w-[580px] mx-auto">
               {/* Curved Arc for Line 1: Thư viện học liệu số */}
-              <svg viewBox="0 0 600 100" className="w-full h-auto overflow-visible block -mb-2 sm:-mb-3">
+              <svg viewBox="0 0 600 100" className="w-full h-auto overflow-visible block -mb-1 sm:-mb-3">
                 <defs>
                   <path id="hero-title-curve" d="M 25,82 Q 300,24 575,82" />
                 </defs>
-                <text fill="#062056" className="font-hero-title font-black" fontSize="48" letterSpacing="-0.5">
+                <text
+                  fill="#062056"
+                  className="font-hero-title font-black"
+                  style={{ fontFamily: "var(--font-nunito), 'Nunito', sans-serif" }}
+                  fontSize="60"
+                  letterSpacing="-0.5"
+                >
                   <textPath href="#hero-title-curve" startOffset="50%" textAnchor="middle">
                     Thư viện học liệu số
                   </textPath>
@@ -110,24 +117,49 @@ export default async function HomePage() {
               </svg>
 
               {/* Line 2: môn Toán 4 */}
-              <div className="font-hero-title text-3xl sm:text-5xl lg:text-6xl font-black text-[#062056] leading-none">
-                <span>môn </span>
+              <div className="font-hero-title text-2xl xs:text-3xl sm:text-5xl lg:text-6xl font-black text-[#062056] leading-none">
+                <span>môn</span>
                 <span className="bg-gradient-to-r from-amber-400 via-orange-500 to-amber-600 bg-clip-text text-transparent drop-shadow-md px-1">
-                  Toán 4
+                  Toán lớp 4
                 </span>
               </div>
 
               {/* Subtitle */}
-              <p className="mt-1.5 text-xs sm:text-sm lg:text-base font-extrabold text-[#082668] tracking-tight">
+              <p className="mt-1 text-[10px] xs:text-xs sm:text-sm lg:text-base font-extrabold text-[#082668] tracking-tight leading-tight px-1">
                 Học thông minh hơn – Khám phá Toán học dễ dàng hơn cùng AI
               </p>
+            </div>
+
+            {/* Clean Interactive Search Bar centered below subtitle */}
+            <div className="w-full max-w-[290px] xs:max-w-sm sm:max-w-xl px-1 xs:px-2 sm:px-4 mt-2 xs:mt-2.5 sm:mt-4 lg:mt-5">
+              <form
+                action="/tim-kiem"
+                method="GET"
+                className="flex items-center bg-white/95 backdrop-blur-md rounded-full border-2 border-blue-400 shadow-xl p-1 sm:p-1.5 hover:border-blue-600 transition-all focus-within:ring-4 focus-within:ring-blue-400/30"
+              >
+                <Search className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-blue-500 ml-2 sm:ml-3.5 shrink-0" />
+                <div className="flex-1 flex flex-col justify-center px-1.5 sm:px-2.5 min-w-0">
+                  <input
+                    type="text"
+                    name="q"
+                    placeholder="Bạn nhỏ muốn học gì hôm nay?"
+                    className="w-full text-[11px] sm:text-sm font-bold text-slate-800 placeholder-slate-500 bg-transparent focus:outline-none placeholder:text-[10px] xs:placeholder:text-[11px] sm:placeholder:text-sm"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-3 sm:px-6 py-1 xs:py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-extrabold rounded-full text-[11px] sm:text-sm shadow-md shadow-blue-500/30 transition-all shrink-0 cursor-pointer"
+                >
+                  Tìm kiếm
+                </button>
+              </form>
             </div>
           </div>
 
           {/* SEPARATED ANIMATED ELEMENTS */}
 
           {/* 1. Boy character (Shifted towards center, right next to search bar) */}
-          <div className="absolute bottom-0 left-[10%] sm:left-[14%] lg:left-[18%] w-[110px] sm:w-[150px] lg:w-[190px] z-20 pointer-events-none animate-character-bob">
+          <div className="absolute bottom-0 left-[0%] xs:left-[2%] sm:left-[14%] lg:left-[18%] w-[70px] xs:w-[85px] sm:w-[150px] lg:w-[190px] z-20 pointer-events-none animate-character-bob">
             <img
               src="/images/hero-parts/boy.png"
               alt="Học sinh nam Toán 4"
@@ -136,7 +168,7 @@ export default async function HomePage() {
           </div>
 
           {/* 2. Yellow glowing lightbulb (Shifted towards center above the boy) */}
-          <div className="absolute top-[6%] left-[20%] sm:left-[24%] lg:left-[28%] w-[34px] sm:w-[46px] lg:w-[54px] z-20 pointer-events-none animate-bulb-glow">
+          <div className="absolute top-[4%] left-[6%] sm:left-[24%] lg:left-[28%] w-[24px] sm:w-[46px] lg:w-[54px] z-20 pointer-events-none animate-bulb-glow">
             <img
               src="/images/hero-parts/lightbulb.png"
               alt="Ý tưởng sáng tạo"
@@ -144,8 +176,8 @@ export default async function HomePage() {
             />
           </div>
 
-          {/* 3. Formula card 1/2 + 1/2 = ? (Shifted towards center beside search bar) */}
-          <div className="absolute top-[30%] left-[22%] sm:left-[26%] lg:left-[28%] w-[45px] sm:w-[60px] lg:w-[72px] z-20 pointer-events-none animate-float-slow">
+          {/* 3. Formula card 1/2 + 1/2 = ? (Hidden on tiny screens to avoid clutter) */}
+          <div className="absolute top-[28%] left-[12%] sm:left-[26%] lg:left-[28%] w-[32px] sm:w-[60px] lg:w-[72px] z-20 pointer-events-none animate-float-slow hidden sm:block">
             <img
               src="/images/hero-parts/formula.png"
               alt="Phân số Toán 4"
@@ -154,7 +186,7 @@ export default async function HomePage() {
           </div>
 
           {/* 4. Geometric blue triangle ruler (Floating top right) */}
-          <div className="absolute top-[6%] right-[22%] sm:right-[24%] lg:right-[25%] w-[38px] sm:w-[50px] lg:w-[60px] z-20 pointer-events-none animate-float-reverse">
+          <div className="absolute top-[4%] right-[10%] sm:right-[24%] lg:right-[25%] w-[26px] sm:w-[50px] lg:w-[60px] z-20 pointer-events-none animate-float-reverse">
             <img
               src="/images/hero-parts/triangle.png"
               alt="Hình học Toán 4"
@@ -163,7 +195,7 @@ export default async function HomePage() {
           </div>
 
           {/* 5. Mini 3D Bar chart (Floating near top right) */}
-          <div className="absolute top-[10%] right-[15%] sm:right-[17%] lg:right-[18%] w-[32px] sm:w-[42px] lg:w-[50px] z-20 pointer-events-none animate-float">
+          <div className="absolute top-[10%] right-[16%] sm:right-[17%] lg:right-[18%] w-[24px] sm:w-[42px] lg:w-[50px] z-20 pointer-events-none animate-float hidden sm:block">
             <img
               src="/images/hero-parts/barchart.png"
               alt="Thống kê biểu đồ"
@@ -172,7 +204,7 @@ export default async function HomePage() {
           </div>
 
           {/* 6. AI Robot (Floating right-center) */}
-          <div className="absolute bottom-[16%] right-[18%] sm:right-[20%] lg:right-[21%] w-[85px] sm:w-[115px] lg:w-[140px] z-20 pointer-events-none animate-robot-hover">
+          <div className="absolute bottom-[12%] right-[20%] sm:right-[20%] lg:right-[21%] w-[45px] xs:w-[55px] sm:w-[115px] lg:w-[140px] z-20 pointer-events-none animate-robot-hover">
             <img
               src="/images/hero-parts/robot.png"
               alt="Robot AI Trợ giảng"
@@ -181,7 +213,7 @@ export default async function HomePage() {
           </div>
 
           {/* 7. Girl character (Right bottom) */}
-          <div className="absolute bottom-0 right-[7%] sm:right-[8%] lg:right-[9%] w-[105px] sm:w-[140px] lg:w-[175px] z-20 pointer-events-none animate-character-bob">
+          <div className="absolute bottom-0 right-[0%] xs:right-[2%] sm:right-[8%] lg:right-[9%] w-[68px] xs:w-[82px] sm:w-[140px] lg:w-[175px] z-20 pointer-events-none animate-character-bob">
             <img
               src="/images/hero-parts/girl.png"
               alt="Học sinh nữ Toán 4"
@@ -189,8 +221,8 @@ export default async function HomePage() {
             />
           </div>
 
-          {/* 8. Note paper sticker (Far right) */}
-          <div className="absolute top-[8%] right-[1%] sm:right-[1.5%] w-[75px] sm:w-[95px] lg:w-[115px] z-20 pointer-events-none animate-gentle-sway">
+          {/* 8. Note paper sticker (Far right - hidden on mobile for clean space) */}
+          <div className="absolute top-[8%] right-[1%] sm:right-[1.5%] w-[50px] sm:w-[95px] lg:w-[115px] z-20 pointer-events-none animate-gentle-sway hidden sm:block">
             <img
               src="/images/hero-parts/note.png"
               alt="Khám phá Luyện tập Hỏi đáp Chinh phục cùng AI!"
@@ -198,31 +230,6 @@ export default async function HomePage() {
             />
           </div>
 
-          {/* Clean Interactive Search Bar centered on bottom grass (Shifted higher up) */}
-          <div className="relative z-30 w-full max-w-xl px-4 pb-10 sm:pb-14 lg:pb-16 -mt-8 sm:-mt-14 lg:-mt-18">
-            <form
-              action="/tim-kiem"
-              method="GET"
-              className="flex items-center bg-white/95 backdrop-blur-md rounded-full border-2 border-blue-400 shadow-xl p-1 sm:p-1.5 hover:border-blue-600 transition-all focus-within:ring-4 focus-within:ring-blue-400/30"
-            >
-              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 ml-2.5 sm:ml-3.5 shrink-0" />
-              <div className="flex-1 flex flex-col justify-center px-2.5 min-w-0">
-                <input
-                  type="text"
-                  name="q"
-                  placeholder="Bạn nhỏ muốn học gì hôm nay?"
-                  className="w-full text-xs sm:text-sm font-bold text-slate-800 placeholder-slate-500 bg-transparent focus:outline-none"
-                />
-
-              </div>
-              <button
-                type="submit"
-                className="px-4 sm:px-6 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-extrabold rounded-full text-xs sm:text-sm shadow-md shadow-blue-500/30 transition-all shrink-0 cursor-pointer"
-              >
-                Tìm kiếm
-              </button>
-            </form>
-          </div>
 
         </div>
       </section>
@@ -241,15 +248,15 @@ export default async function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
 
           {/* Corner 1: Góc Khám phá */}
           <Link
             href="/kham-pha"
-            className="bg-[#EBF4FF] p-5 rounded-3xl border border-blue-100 flex items-center justify-between group hover:shadow-md transition-all"
+            className="bg-[#EBF4FF] p-4 lg:p-5 rounded-3xl border border-blue-100 flex flex-col items-center text-center lg:flex-row lg:items-center lg:justify-between lg:text-left group hover:shadow-md transition-all relative"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md shrink-0 overflow-hidden relative border border-blue-100">
+            <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left gap-2 lg:gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md shrink-0 overflow-hidden relative border border-blue-100 mb-2 lg:mb-0">
                 <Image
                   src="/illustrations/kham-pha.jpg"
                   alt="Góc Khám phá"
@@ -259,7 +266,7 @@ export default async function HomePage() {
                 />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 text-base group-hover:text-blue-600 transition-colors">
+                <h3 className="font-extrabold text-slate-900 text-sm sm:text-base group-hover:text-blue-600 transition-colors">
                   Góc Khám phá
                 </h3>
                 <p className="text-xs text-slate-600 line-clamp-2 leading-tight">
@@ -267,7 +274,7 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-            <div className="w-7 h-7 rounded-full bg-blue-200/80 text-blue-700 flex items-center justify-center shrink-0 ml-2 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            <div className="absolute hidden md:flex top-3 right-3 lg:static w-7 h-7 rounded-full bg-blue-200/80 text-blue-700 flex items-center justify-center shrink-0 lg:ml-2 group-hover:bg-blue-600 group-hover:text-white transition-colors">
               <ChevronRight className="w-4 h-4" />
             </div>
           </Link>
@@ -275,10 +282,10 @@ export default async function HomePage() {
           {/* Corner 2: Góc Luyện tập */}
           <Link
             href="/luyen-tap"
-            className="bg-[#E8F8F0] p-5 rounded-3xl border border-emerald-100 flex items-center justify-between group hover:shadow-md transition-all"
+            className="bg-[#E8F8F0] p-4 lg:p-5 rounded-3xl border border-emerald-100 flex flex-col items-center text-center lg:flex-row lg:items-center lg:justify-between lg:text-left group hover:shadow-md transition-all relative"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md shrink-0 overflow-hidden relative border border-emerald-100">
+            <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left gap-2 lg:gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md shrink-0 overflow-hidden relative border border-emerald-100 mb-2 lg:mb-0">
                 <Image
                   src="/illustrations/hoc-tap.jpg"
                   alt="Góc Luyện tập"
@@ -288,7 +295,7 @@ export default async function HomePage() {
                 />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 text-base group-hover:text-emerald-600 transition-colors">
+                <h3 className="font-extrabold text-slate-900 text-sm sm:text-base group-hover:text-emerald-600 transition-colors">
                   Góc Luyện tập
                 </h3>
                 <p className="text-xs text-slate-600 line-clamp-2 leading-tight">
@@ -296,7 +303,7 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-            <div className="w-7 h-7 rounded-full bg-emerald-200/80 text-emerald-700 flex items-center justify-center shrink-0 ml-2 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+            <div className="absolute hidden md:flex top-3 right-3 lg:static w-7 h-7 rounded-full bg-emerald-200/80 text-emerald-700 flex items-center justify-center shrink-0 lg:ml-2 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <ChevronRight className="w-4 h-4" />
             </div>
           </Link>
@@ -304,10 +311,10 @@ export default async function HomePage() {
           {/* Corner 3: Góc Hỏi đáp */}
           <Link
             href="/hoi-dap"
-            className="bg-[#FFF4E5] p-5 rounded-3xl border border-amber-100 flex items-center justify-between group hover:shadow-md transition-all"
+            className="bg-[#FFF4E5] p-4 lg:p-5 rounded-3xl border border-amber-100 flex flex-col items-center text-center lg:flex-row lg:items-center lg:justify-between lg:text-left group hover:shadow-md transition-all relative"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md shrink-0 overflow-hidden relative border border-amber-100">
+            <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left gap-2 lg:gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md shrink-0 overflow-hidden relative border border-amber-100 mb-2 lg:mb-0">
                 <Image
                   src="/illustrations/ai-chat.jpg"
                   alt="Góc Hỏi đáp"
@@ -317,7 +324,7 @@ export default async function HomePage() {
                 />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 text-base group-hover:text-amber-600 transition-colors">
+                <h3 className="font-extrabold text-slate-900 text-sm sm:text-base group-hover:text-amber-600 transition-colors">
                   Góc Hỏi đáp
                 </h3>
                 <p className="text-xs text-slate-600 line-clamp-2 leading-tight">
@@ -325,7 +332,7 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-            <div className="w-7 h-7 rounded-full bg-amber-200/80 text-amber-700 flex items-center justify-center shrink-0 ml-2 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+            <div className="absolute hidden md:flex top-3 right-3 lg:static w-7 h-7 rounded-full bg-amber-200/80 text-amber-700 flex items-center justify-center shrink-0 lg:ml-2 group-hover:bg-amber-600 group-hover:text-white transition-colors">
               <ChevronRight className="w-4 h-4" />
             </div>
           </Link>
@@ -333,10 +340,10 @@ export default async function HomePage() {
           {/* Corner 4: Góc Chinh phục & Đánh giá */}
           <Link
             href="/chinh-phuc"
-            className="bg-[#F3EBFB] p-5 rounded-3xl border border-purple-100 flex items-center justify-between group hover:shadow-md transition-all"
+            className="bg-[#F3EBFB] p-4 lg:p-5 rounded-3xl border border-purple-100 flex flex-col items-center text-center lg:flex-row lg:items-center lg:justify-between lg:text-left group hover:shadow-md transition-all relative"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md shrink-0 overflow-hidden relative border border-purple-100">
+            <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left gap-2 lg:gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white p-1 shadow-md shrink-0 overflow-hidden relative border border-purple-100 mb-2 lg:mb-0">
                 <Image
                   src="/illustrations/chinh-phuc.jpg"
                   alt="Góc Chinh phục & Đánh giá"
@@ -346,7 +353,7 @@ export default async function HomePage() {
                 />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 text-base group-hover:text-purple-600 transition-colors">
+                <h3 className="font-extrabold text-slate-900 text-sm sm:text-base group-hover:text-purple-600 transition-colors">
                   Góc Chinh phục &amp; Đánh giá
                 </h3>
                 <p className="text-xs text-slate-600 line-clamp-2 leading-tight">
@@ -354,7 +361,7 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-            <div className="w-7 h-7 rounded-full bg-purple-200/80 text-purple-700 flex items-center justify-center shrink-0 ml-2 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+            <div className="absolute hidden md:flex top-3 right-3 lg:static w-7 h-7 rounded-full bg-purple-200/80 text-purple-700 flex items-center justify-center shrink-0 lg:ml-2 group-hover:bg-purple-600 group-hover:text-white transition-colors">
               <ChevronRight className="w-4 h-4" />
             </div>
           </Link>
@@ -370,8 +377,8 @@ export default async function HomePage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">📑</span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Học liệu mới cập nhật
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              Học liệu
             </h2>
           </div>
           <Link

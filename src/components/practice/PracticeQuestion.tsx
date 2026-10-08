@@ -75,13 +75,10 @@ export default function PracticeQuestion({
   };
 
   return (
-    <div className="bg-white rounded-3xl p-5 sm:p-7 border border-blue-100/60 shadow-xs space-y-4">
+    <div className="bg-white rounded-2xl p-5 sm:p-6 border border-blue-100/60 shadow-xs space-y-4">
       {/* Exercise Card Header */}
       <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#1461B8] text-white flex items-center justify-center shadow-xs">
-            <Briefcase className="w-5 h-5" />
-          </div>
           <div>
             <h2 className="text-xl sm:text-2xl font-black text-[#123B72] tracking-tight mt-0.5">
               {questionData.lessonTitle}
@@ -93,7 +90,7 @@ export default function PracticeQuestion({
       {/* Embedded Wordwall Game Display Container */}
       <div className="space-y-3.5 my-2">
         {/* Game iframe */}
-        <div className="relative rounded-3xl overflow-hidden aspect-video w-full border-4 border-slate-900 shadow-2xl bg-slate-950 min-h-[460px] sm:min-h-[540px]">
+        <div className="relative rounded-2xl overflow-hidden aspect-video w-full border-4 border-slate-900 shadow-2xl bg-slate-950 min-h-[460px] sm:min-h-[540px]">
           <iframe
             src={getWordwallEmbedUrl(questionData.questionText)}
             className="w-full h-full border-0 min-h-[460px] sm:min-h-[540px]"

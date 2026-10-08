@@ -9,8 +9,9 @@ import AiContextCard from '@/components/hoi-dap/AiContextCard';
 import AiChatMessage, { ChatMessageData } from '@/components/hoi-dap/AiChatMessage';
 import AiTypingIndicator from '@/components/hoi-dap/AiTypingIndicator';
 import AiChatInput from '@/components/hoi-dap/AiChatInput';
+import { getFirstName } from '@/lib/gemini';
 import { ChatMode, LessonContext } from '@/lib/openai';
-import { Clock, PanelLeftClose, PanelLeftOpen, BookOpen, MessageCircleQuestion } from 'lucide-react';
+import { Clock, PanelLeftClose, PanelLeftOpen, BookOpen, MessageCircleQuestion, X } from 'lucide-react';
 
 function HoiDapContent() {
   const searchParams = useSearchParams();
@@ -195,7 +196,7 @@ function HoiDapContent() {
         const aiMsg: ChatMessageData = {
           id: data.message?.id || 'ai_' + Math.random().toString(36).substring(2, 9),
           role: 'assistant',
-          content: data.message?.content || 'Xin lỗi, thầy cô AI đang bận một chút, em hãy thử đặt lại câu hỏi nhé!',
+          content: data.message?.content || 'Xin lỗi, trợ lý AI đang bận một chút, em hãy thử đặt lại câu hỏi nhé!',
           mode: data.message?.mode || mode,
           suggestedFollowUps: data.message?.suggestedFollowUps || [],
           createdAt: data.message?.createdAt,
@@ -207,7 +208,7 @@ function HoiDapContent() {
         const errorMsg: ChatMessageData = {
           id: 'err_' + Math.random().toString(36).substring(2, 9),
           role: 'assistant',
-          content: data.error?.message || 'Thầy cô AI đang bận một chút. Em thử lại sau nhé.',
+          content: data.error?.message || 'Trợ lý AI đang bận một chút. Em thử lại sau nhé.',
           isNew: true,
         };
         setMessages((prev) => [...prev, errorMsg]);
@@ -217,7 +218,7 @@ function HoiDapContent() {
       const errorMsg: ChatMessageData = {
         id: 'err_' + Math.random().toString(36).substring(2, 9),
         role: 'assistant',
-        content: 'Thầy cô AI đang bận một chút. Em thử lại sau nhé.',
+        content: 'Trợ lý AI đang bận một chút. Em thử lại sau nhé.',
         isNew: true,
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -227,43 +228,81 @@ function HoiDapContent() {
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] bg-[#F5FAFF] text-[#123B72] flex flex-col overflow-hidden">
+    <div className="h-[calc(100dvh-64px)] sm:h-[calc(100vh-80px)] bg-[#F5FAFF] text-[#123B72] flex flex-col overflow-hidden">
       {/* Dynamic Breadcrumb */}
       <AiBreadcrumb context={context} />
 
       {/* Main Container */}
-      <div className="max-w-8xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-3 flex-1 flex flex-col space-y-3 min-h-0 overflow-hidden">
+      <div className="max-w-8xl mx-auto w-full px-2.5 sm:px-6 lg:px-8 py-2 sm:py-3 flex-1 flex flex-col min-h-0 overflow-hidden">
 
-        {/* Mobile History Toggle & Header bar */}
-        <div className="lg:hidden flex items-center justify-between bg-white p-2.5 rounded-2xl border border-blue-100 shadow-2xs shrink-0">
+        {/* Mobile Header Bar & Action Buttons */}
+        <div className="lg:hidden flex items-center justify-between gap-2 bg-white p-2 rounded-2xl border border-blue-100 shadow-2xs shrink-0 mb-1.5">
           <button
-            onClick={() => setMobileHistoryOpen(!mobileHistoryOpen)}
-            className="flex items-center gap-2 text-xs font-extrabold text-[#1261B5] px-3 py-1.5 rounded-xl bg-[#E7F3FF]"
+            onClick={() => setMobileHistoryOpen(true)}
+            className="flex items-center gap-1.5 text-xs font-extrabold text-[#1261B5] px-3 py-1.5 rounded-xl bg-[#E7F3FF] active:scale-95 transition-all"
           >
-            {mobileHistoryOpen ? (
-              <PanelLeftClose className="w-4 h-4" />
-            ) : (
-              <PanelLeftOpen className="w-4 h-4" />
-            )}
-            <span>Lịch sử hỏi đáp ({conversations.length})</span>
+            <PanelLeftOpen className="w-4 h-4" />
+            <span>Lịch sử ({conversations.length})</span>
           </button>
+
+          {context.lesson && (
+            <span className="text-[11px] font-bold text-[#1261B5] bg-[#F5FAFF] border border-blue-100 px-2.5 py-1 rounded-xl truncate max-w-[130px] sm:max-w-[200px]">
+              📚 {context.lesson}
+            </span>
+          )}
 
           <button
             onClick={handleNewChat}
-            className="text-xs font-bold text-slate-600 hover:text-[#1261B5] px-3 py-1.5 rounded-xl bg-slate-100"
+            className="text-xs font-bold text-slate-700 hover:text-[#1261B5] px-3 py-1.5 rounded-xl bg-slate-100 transition-colors"
           >
             + Câu hỏi mới
           </button>
         </div>
 
+        {/* Mobile Slide-Over Drawer for History */}
+        {mobileHistoryOpen && (
+          <div className="lg:hidden fixed inset-0 z-[999] flex">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
+              onClick={() => setMobileHistoryOpen(false)}
+            />
+            {/* Slide-in Panel */}
+            <div className="relative w-[85%] max-w-xs bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
+              <div className="flex items-center justify-between p-3.5 border-b border-slate-100">
+                <span className="font-extrabold text-sm text-[#123B72]">Lịch sử hỏi đáp</span>
+                <button
+                  onClick={() => setMobileHistoryOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden p-2">
+                <AiSidebar
+                  conversations={conversations}
+                  activeId={activeConversationId}
+                  onSelectConversation={(id) => {
+                    handleSelectConversation(id);
+                    setMobileHistoryOpen(false);
+                  }}
+                  onNewChat={() => {
+                    handleNewChat();
+                    setMobileHistoryOpen(false);
+                  }}
+                  onDeleteConversation={handleDeleteConversation}
+                  isLoading={fetchingHistory}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 3-Column Desktop Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch flex-1 min-h-0 overflow-hidden">
 
-          {/* LEFT SIDEBAR (Desktop 3 cols: ~260px) */}
-          <div
-            className={`lg:col-span-3 h-full min-h-0 overflow-hidden ${mobileHistoryOpen ? 'block' : 'hidden lg:block'
-              }`}
-          >
+          {/* LEFT SIDEBAR (Desktop 3 cols: ~260px, Hidden on Mobile) */}
+          <div className="hidden lg:block lg:col-span-3 h-full min-h-0 overflow-hidden">
             <AiSidebar
               conversations={conversations}
               activeId={activeConversationId}
@@ -275,27 +314,28 @@ function HoiDapContent() {
           </div>
 
           {/* CENTER CHAT AREA (Desktop 6 cols: flex-1) */}
-          <main className="lg:col-span-6 flex flex-col h-full min-h-0 space-y-3 overflow-hidden">
+          <main className="lg:col-span-6 flex flex-col h-full min-h-0 space-y-2 sm:space-y-3 overflow-hidden">
             {/* Hero Header */}
             <div className="shrink-0">
               <AiHero />
             </div>
 
             {/* Chat Messages / Empty State Card */}
-            <div className="bg-white rounded-3xl border border-blue-100 shadow-xl overflow-hidden flex flex-col flex-1 min-h-0">
+            <div className="bg-white rounded-2xl sm:rounded-3xl border border-blue-100 shadow-lg sm:shadow-xl overflow-hidden flex flex-col flex-1 min-h-0">
 
               {/* Message scroll container - ONLY THIS SCROLLS */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-2 min-h-0 scrollbar-thin">
+              <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-2 min-h-0 scrollbar-thin">
                 {messages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center py-8 px-4 text-center space-y-3">
-                    <div className="w-14 h-14 rounded-3xl bg-gradient-to-tr from-[#1261B5] to-[#2F80ED] text-white mx-auto flex items-center justify-center shadow-lg shadow-blue-500/20">
-                      <MessageCircleQuestion className="w-8 h-8 text-white" />
+                  <div className="h-full flex flex-col items-center justify-center py-6 px-4 text-center space-y-3">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-3xl bg-gradient-to-tr from-[#1261B5] to-[#2F80ED] text-white mx-auto flex items-center justify-center shadow-lg shadow-blue-500/20">
+                      <MessageCircleQuestion className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </div>
-                    <h2 className="text-lg sm:text-xl font-black text-[#123B72]">
+                    <h2 className="text-base sm:text-xl font-black text-[#123B72]">
                       Em muốn hỏi điều gì?
                     </h2>
-                    <p className="text-xs font-medium text-[#6680A3] max-w-md leading-relaxed">
-                      Thầy cô AI sẵn sàng giải đáp thắc mắc và hướng dẫn bài tập cho em. Hãy nhập câu hỏi ở bên dưới nhé!
+                    <p className="text-xs sm:text-sm font-medium text-[#6680A3] max-w-md leading-relaxed">
+                      {currentUser?.name ? `Chào ${getFirstName(currentUser.name)} nhé! ` : 'Chào bạn nhỏ nhé! '}
+                      Mình sẵn sàng giải đáp thắc mắc và hướng dẫn bài tập cho em. Hãy nhập câu hỏi ở bên dưới nhé!
                     </p>
                   </div>
                 ) : (
@@ -326,8 +366,8 @@ function HoiDapContent() {
             </div>
           </main>
 
-          {/* RIGHT SIDEBAR CONTEXT (Desktop 3 cols: ~280px) */}
-          <aside className="lg:col-span-3 h-full min-h-0 overflow-y-auto">
+          {/* RIGHT SIDEBAR CONTEXT (Desktop 3 cols: ~280px, Hidden on Mobile) */}
+          <aside className="hidden lg:block lg:col-span-3 h-full min-h-0 overflow-y-auto">
             <AiContextCard context={context} />
           </aside>
 

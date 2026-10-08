@@ -93,7 +93,7 @@ export default function FeaturedLessonsSection({ initialLessons }: FeaturedLesso
         <div>
           <div className="flex items-center gap-2">
             <span className="text-2xl">🔥</span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
               Bài Học Nổi Bật (Bài 1 - Bài 32)
             </h2>
           </div>
@@ -173,8 +173,8 @@ export default function FeaturedLessonsSection({ initialLessons }: FeaturedLesso
               key={item.id}
               href={`/kham-pha?slug=${item.slug}`}
               className={`bg-white rounded-3xl border overflow-hidden shadow-xs hover:shadow-xl transition-all group flex flex-col justify-between relative ${isActive
-                  ? 'ring-2 ring-purple-500 border-purple-300 shadow-purple-500/10'
-                  : 'border-slate-200/80 hover:border-blue-300'
+                ? 'ring-2 ring-purple-500 border-purple-300 shadow-purple-500/10'
+                : 'border-slate-200/80 hover:border-blue-300'
                 }`}
             >
               <div>
@@ -194,11 +194,6 @@ export default function FeaturedLessonsSection({ initialLessons }: FeaturedLesso
                     </div>
                   )}
 
-                  {/* Time Badge Overlay */}
-                  <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/75 text-white text-[11px] font-bold rounded-md flex items-center gap-1 backdrop-blur-xs">
-                    <Play className="w-3 h-3 fill-white" />
-                    <span>{item.duration}</span>
-                  </div>
                 </div>
 
                 {/* Title & Badges */}

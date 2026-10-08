@@ -20,7 +20,7 @@ export default function AiSuggestedQuestions({
     },
     {
       title: 'Giúp em hiểu bài này.',
-      desc: 'Thầy cô AI hướng dẫn lý thuyết từng bước.',
+      desc: 'Mình hướng dẫn lý thuyết từng bước.',
       tag: 'Bài học',
     },
     {
@@ -46,7 +46,7 @@ export default function AiSuggestedQuestions({
           Em muốn hỏi điều gì?
         </h2>
         <p className="text-xs sm:text-sm font-medium text-[#6680A3] leading-relaxed">
-          Thầy cô AI sẽ giúp em tìm hiểu bài học theo từng bước. Hãy chọn gợi ý bên dưới hoặc nhập câu hỏi nhé!
+          Mình sẽ giúp em tìm hiểu bài học theo từng bước. Hãy chọn gợi ý bên dưới hoặc nhập câu hỏi nhé!
         </p>
       </div>
 

@@ -176,13 +176,13 @@ export default function AiChatInput({
       />
 
       {/* Input Form Row */}
-      <form onSubmit={handleSubmit} className="flex items-end gap-2">
-        <div className="flex-1 bg-[#F5FAFF] rounded-2xl border border-slate-200 focus-within:border-[#2F80ED] focus-within:ring-2 focus-within:ring-blue-500/20 transition-all p-2 flex items-end gap-2">
+      <form onSubmit={handleSubmit} className="flex items-center sm:items-end gap-2">
+        <div className="flex-1 bg-[#F5FAFF] rounded-2xl border border-slate-200 focus-within:border-[#2F80ED] focus-within:ring-2 focus-within:ring-blue-500/20 transition-all px-2.5 py-1.5 flex items-center sm:items-end gap-1.5 min-h-[44px]">
           {/* Attach file / Upload Image button */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-[#6680A3] hover:text-[#1261B5] hover:bg-white rounded-xl transition-colors shrink-0 flex items-center gap-1"
+            className="p-1.5 text-[#6680A3] hover:text-[#1261B5] hover:bg-white rounded-xl transition-colors shrink-0 flex items-center justify-center my-0.5"
             title="Tải hoặc đính kèm ảnh bài tập"
             aria-label="Tải ảnh lên"
           >
@@ -198,8 +198,8 @@ export default function AiChatInput({
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             disabled={disabled}
-            placeholder={attachedImage ? "Nhập thêm yêu cầu về ảnh (hoặc bấm Gửi ngay)..." : "Nhập câu hỏi hoặc Dán (Ctrl+V) ảnh bài tập vào đây..."}
-            className="flex-1 bg-transparent border-0 text-sm font-medium text-[#123B72] placeholder:text-[#6680A3] focus:outline-none resize-none py-1.5 max-h-40"
+            placeholder={attachedImage ? "Nhập thêm yêu cầu về ảnh..." : "Nhập câu hỏi..."}
+            className="flex-1 bg-transparent border-0 text-xs sm:text-sm font-medium text-[#123B72] placeholder:text-[#6680A3] focus:outline-none resize-none py-1 min-h-[28px] max-h-40"
           />
         </div>
 
@@ -207,9 +207,9 @@ export default function AiChatInput({
         <button
           type="submit"
           disabled={(!text.trim() && !attachedImage) || disabled}
-          className="py-3 px-5 bg-[#1261B5] hover:bg-[#2F80ED] disabled:opacity-40 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 shrink-0 h-[46px] active:scale-98 cursor-pointer"
+          className="h-[44px] px-4 sm:px-5 bg-[#1261B5] hover:bg-[#2F80ED] disabled:opacity-40 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-1.5 shrink-0 active:scale-98 cursor-pointer"
         >
-          <span>Gửi</span>
+          <span className="hidden sm:inline">Gửi</span>
           <Send className="w-4 h-4" />
         </button>
       </form>

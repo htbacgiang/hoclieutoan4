@@ -458,7 +458,7 @@ export default function LessonDetailClient({ lesson, resources, exercises }: Les
             </div>
             <div className="bg-white p-3 rounded-2xl inline-block shadow-md">
               <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : 'https://hoclieutoan4.vn')}`}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : 'https://hoclieutoanlop4.com')}`}
                 alt="QR Code bài học"
                 className="w-28 h-28"
               />

@@ -1,9 +1,10 @@
+import mongoose from 'mongoose';
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongodb';
 import ChatConversation from '@/models/ChatConversation';
 import ChatMessage from '@/models/ChatMessage';
 import { getSession } from '@/lib/auth';
-import { generateGeminiResponse, ChatMode, LessonContext } from '@/lib/gemini';
+import { generateGeminiResponse, ChatMode, LessonContext, getFirstName } from '@/lib/gemini';
 import { getDocumentContentForLesson } from '@/lib/documentReader';
 
 export async function POST(req: Request) {
@@ -42,24 +43,29 @@ export async function POST(req: Request) {
       );
     }
 
-    let activeConversation;
+    let activeConversation = null;
 
-    if (conversationId) {
-      // Find existing conversation
-      activeConversation = await ChatConversation.findById(conversationId);
-      if (activeConversation && session?.id && activeConversation.userId) {
-        if (activeConversation.userId.toString() !== session.id) {
-          return NextResponse.json(
-            {
-              success: false,
-              error: {
-                code: 'FORBIDDEN',
-                message: 'Bạn không có quyền truy cập cuộc trò chuyện này.',
-              },
+    if (conversationId && mongoose.Types.ObjectId.isValid(conversationId)) {
+      try {
+        activeConversation = await ChatConversation.findById(conversationId);
+      } catch (e) {
+        console.warn('⚠️ Invalid or missing conversation ID:', conversationId);
+        activeConversation = null;
+      }
+    }
+
+    if (activeConversation && session?.id && activeConversation.userId) {
+      if (activeConversation.userId.toString() !== session.id) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'FORBIDDEN',
+              message: 'Bạn không có quyền truy cập cuộc trò chuyện này.',
             },
-            { status: 403 }
-          );
-        }
+          },
+          { status: 403 }
+        );
       }
     }
 
@@ -118,6 +124,7 @@ export async function POST(req: Request) {
       context: mergedContext,
       mode: mode as ChatMode,
       image: image || undefined,
+      userName: session?.name ? getFirstName(session.name) : undefined,
     });
 
     // Save AI assistant response to DB
@@ -161,7 +168,7 @@ export async function POST(req: Request) {
         success: false,
         error: {
           code: 'AI_ERROR',
-          message: 'Thầy cô AI đang bận một chút. Em thử lại sau nhé.',
+          message: 'Trợ lý AI đang bận một chút. Em thử lại sau nhé.',
         },
       },
       { status: 500 }

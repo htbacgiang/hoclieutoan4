@@ -1,11 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Comfortaa:wght@700&family=Fredoka:wght@600;700&family=Nunito:wght@800;900&display=swap');
 @import "tailwindcss";
 
-.font-hero-title {
-  font-family: 'Baloo 2', 'Fredoka', 'Comfortaa', 'Nunito', 'Be Vietnam Pro', system-ui, sans-serif;
-}
-
 :root {
+  --font-nunito: 'Nunito', system-ui, -apple-system, sans-serif;
   --background: #F7FAFF;
   --foreground: #173B72;
   --primary: #1677FF;
@@ -17,10 +13,14 @@
   --red: #FF6B6B;
 }
 
-body {
+.font-hero-title {
+  font-family: var(--font-nunito), 'Nunito', system-ui, sans-serif !important;
+}
+
+html, body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-nunito), 'Nunito', system-ui, -apple-system, sans-serif !important;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }

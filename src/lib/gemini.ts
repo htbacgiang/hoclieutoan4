@@ -27,7 +27,13 @@ export function getGeminiModel(): string {
   return process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 }
 
-export function buildSystemInstruction(context?: LessonContext, mode: ChatMode = 'ask'): string {
+export function getFirstName(fullName?: string): string {
+  if (!fullName || typeof fullName !== 'string' || !fullName.trim()) return '';
+  const parts = fullName.trim().split(/\s+/);
+  return parts[parts.length - 1] || '';
+}
+
+export function buildSystemInstruction(context?: LessonContext, mode: ChatMode = 'ask', userName?: string): string {
   let modeInstruction = '';
 
   switch (mode) {
@@ -81,30 +87,34 @@ YÊU CẦU BẮT BUỘC:
 - Nhắc đến việc bạn đã xem tài liệu bài giảng để tạo sự gần gũi và tin tưởng cho học sinh.`;
   }
 
+  const firstName = getFirstName(userName);
+  const userGreeting = firstName ? `Chào ${firstName} nhé!` : 'Chào bạn nhỏ nhé!';
+
   return `Bạn là Trợ lý học tập AI của nền tảng Thư viện Học liệu số Toán 4.
 Bạn hỗ trợ học sinh tiểu học, ưu tiên học sinh lớp 4.
 Mục tiêu là giúp học sinh hiểu bài, biết cách suy nghĩ và từng bước tự giải quyết vấn đề.
 
-NGUYÊN TẮC BẮT BUỘC:
-1. Luôn trả lời bằng tiếng Việt thân thiện, khích lệ.
-2. Dùng ngôn ngữ đơn giản, phù hợp học sinh lớp 4.
-3. Giải thích từng bước (dùng tiêu đề ### Bước 1, ### Bước 2, ### Kết luận).
-4. Với Toán, trình trình phép tính rõ ràng.
-5. Nếu có thể, dùng ví dụ gần gũi thực tế.
-6. Không chê bai học sinh, không làm học sinh mất tự tin.
-7. Không bịa thông tin.
-8. Không sử dụng ngôn ngữ quá học thuật.
-9. TUYỆT ĐỐI KHÔNG DÙNG CÚ PHÁP LATEX (không dùng \\frac, $, $$, \\times, \\div).
-10. DÙNG CÁCH VIẾT TOÁN TIỂU HỌC ĐƠN GIẢN:
+QUY TẮC XƯNG HÀO & NGHỆ THUẬT GIAO TIẾP:
+1. Bạn xưng là "Mình" khi nói chuyện với học sinh/bạn nhỏ. TUYỆT ĐỐI KHÔNG xưng là "Thầy cô", "Thầy/cô", "Tôi", hay "Robot".
+2. Lời chào đầu tiên hoặc khi bắt đầu: Sử dụng "${userGreeting}".
+3. Luôn trả lời bằng tiếng Việt thân thiện, khích lệ và gần gũi như một người bạn lớn đồng hành.
+4. Dùng ngôn ngữ đơn giản, phù hợp học sinh lớp 4.
+5. Giải thích từng bước (dùng tiêu đề ### Bước 1, ### Bước 2, ### Kết luận).
+6. Với Toán, trình bày phép tính rõ ràng.
+7. Nếu có thể, dùng ví dụ gần gũi thực tế.
+8. Không chê bai học sinh, không làm học sinh mất tự tin.
+9. Không bịa thông tin.
+10. Không sử dụng ngôn ngữ quá học thuật.
+11. TUYỆT ĐỐI KHÔNG DÙNG CÚ PHÁP LATEX (không dùng \\frac, $, $$, \\times, \\div).
+12. DÙNG CÁCH VIẾT TOÁN TIỂU HỌC ĐƠN GIẢN:
     - Phân số viết dạng: 1/2, 2/3, 7/6.
     - Phép nhân dùng dấu x hoặc ×.
     - Phép chia dùng dấu :.
     - Ví dụ: 1/2 + 2/3 = 3/6 + 4/6 = 7/6.
-11. Nếu thiếu dữ liệu, nói rõ cần thêm thông tin.
-12. Nếu học sinh đang làm bài, ưu tiên hướng dẫn và gợi ý thay vì chỉ đưa đáp án.
-13. Không nói rằng AI đã nhìn thấy hình ảnh nếu request không có hình ảnh.
-14. Không đưa nội dung không phù hợp với trẻ em.
-15. Sử dụng mẹo học tập với ký hiệu 💡 Mẹo.
+13. Nếu thiếu dữ liệu, nói rõ cần thêm thông tin.
+14. Nếu học sinh đang làm bài, ưu tiên hướng dẫn và gợi ý thay vị chỉ đưa đáp án.
+15. Không nói rằng AI đã nhìn thấy hình ảnh nếu request không có hình ảnh.
+16. Sử dụng mẹo học tập với ký hiệu 💡 Mẹo.
 
 ${modeInstruction}
 ${contextInstruction}
@@ -116,6 +126,7 @@ export interface GenerateGeminiResponseParams {
   context?: LessonContext;
   mode?: ChatMode;
   image?: string;
+  userName?: string;
 }
 
 export interface GenerateGeminiResponseResult {
@@ -128,23 +139,33 @@ export async function generateGeminiResponse({
   context,
   mode = 'ask',
   image,
+  userName,
 }: GenerateGeminiResponseParams): Promise<GenerateGeminiResponseResult> {
   const client = getGeminiClient();
   const primaryModel = getGeminiModel();
-  const systemInstruction = buildSystemInstruction(context, mode);
+  const systemInstruction = buildSystemInstruction(context, mode, userName);
 
   const hasImage = Boolean(image || messages.some((m) => Boolean(m.imageUrl)));
 
   if (!client) {
     console.warn('⚠️ GEMINI_API_KEY is not configured or empty. Using fallback EdTech provider.');
-    return getFallbackResponse(messages[messages.length - 1]?.content || '', context, mode, hasImage);
+    return getFallbackResponse(messages[messages.length - 1]?.content || '', context, mode, hasImage, userName);
   }
 
-  // Active models accepted by API endpoint
-  const candidateModels = Array.from(new Set([
-    primaryModel,
-    'gemini-3.8-flash',
-  ]));
+  // Active models accepted by API endpoint with fallback hierarchy
+  const candidateModels = Array.from(
+    new Set(
+      [
+        primaryModel,
+        'gemini-3.8-flash',
+        'gemini-3.7-flash',
+        'gemini-3.6-flash',
+        'gemini-3.5-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-flash-latest',
+      ].filter(Boolean)
+    )
+  );
 
   const contents = messages.map((m, idx) => {
     const isLastUserMsg = idx === messages.length - 1 && m.role === 'user';
@@ -175,8 +196,8 @@ export async function generateGeminiResponse({
   });
 
   for (const model of candidateModels) {
-    // Retry up to 4 times for transient high-demand / 503 / 429 errors
-    for (let attempt = 1; attempt <= 4; attempt++) {
+    // Retry up to 2 times per model for transient high-demand / 503 / 429 errors
+    for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         const response = await client.models.generateContent({
           model: model,
@@ -210,25 +231,24 @@ export async function generateGeminiResponse({
 
         console.warn(`⚠️ Gemini API attempt ${attempt} for model [${model}] failed: ${errorMsg}`);
 
-        if (isTransient && attempt < 4) {
-          // Wait exponential backoff before retry (1s, 2s, 3s)
-          await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+        if (isTransient && attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 800));
           continue;
         }
 
-        // Move to next candidate model or exit loop
+        // Move to next candidate model
         break;
       }
     }
   }
 
   console.error('❌ Gemini API unavailable after retries. Returning fallback EdTech response.');
-  return getFallbackResponse(messages[messages.length - 1]?.content || '', context, mode, hasImage);
+  return getFallbackResponse(messages[messages.length - 1]?.content || '', context, mode, hasImage, userName);
 }
 
 function extractFollowUps(aiReply: string, context?: LessonContext): string[] {
   const defaults = [
-    'Thầy cô cho em thêm 1 ví dụ nữa nhé',
+    'Cho em ví dụ khác để em tự làm nhé',
     'Em chưa hiểu bước vừa rồi lắm',
     'Cho em 1 câu hỏi thử sức tương tự',
   ];
@@ -248,13 +268,17 @@ function getFallbackResponse(
   userQuery: string,
   context?: LessonContext,
   mode: ChatMode = 'ask',
-  hasImage?: boolean
+  hasImage?: boolean,
+  userName?: string
 ): GenerateGeminiResponseResult {
+  const firstName = getFirstName(userName);
+  const greeting = firstName ? `Chào ${firstName} nhé!` : 'Chào bạn nhỏ nhé!';
+
   if (hasImage) {
     return {
-      content: `🤖 **Trợ lý học tập AI (Đã nhận & đọc hình ảnh của em)**
+      content: `🤖 **Trợ lý học tập AI**
 
-Thầy cô AI đã nhận được hình ảnh bài tập em gửi!
+${greeting} Mình đã nhận được hình ảnh bài tập em gửi!
 
 ### Bước 1: Phân tích nội dung hình ảnh
 Hình ảnh chụp bài tập toán tiểu học (phân số / hình học / phép tính).
@@ -266,7 +290,7 @@ Hình ảnh chụp bài tập toán tiểu học (phân số / hình học / ph�
 
 💡 **Mẹo:** Em hãy thử nhập câu hỏi cụ thể về phép tính trong ảnh nếu cần giải thích thêm nhé!`,
       suggestedFollowUps: [
-        'Giải chi tiết bài trong ảnh giúp em',
+        'Giải chi tiết bài trong ảnh giúp mình với',
         'Cho em bài tập làm thử tương tự',
         'Giải thích giúp em bước 1',
       ],
@@ -294,7 +318,7 @@ Hình ảnh chụp bài tập toán tiểu học (phân số / hình học / ph�
 
     answer = `🤖 **Trợ lý học tập AI (Đã tự động đọc tài liệu: ${context.documentFileName || 'Bài học'})**
 
-Thầy cô AI đã tự động đọc và trích xuất dữ liệu từ file bài giảng **${context.documentFileName || context.lesson || 'bài học'}** trong thư mục tài liệu:
+${greeting} Mình đã tự động đọc và trích xuất dữ liệu từ file bài giảng **${context.documentFileName || context.lesson || 'bài học'}** trong thư mục tài liệu:
 
 ---
 
@@ -306,7 +330,7 @@ ${docSummary}
 ### 💡 Hướng dẫn học tập & giải bài:
 1. **Lý thuyết trọng tâm:** Em hãy đọc kỹ lại các khái niệm và dạng bài trong phần tài liệu trích xuất ở trên.
 2. **Phương pháp suy luận:** Áp dụng các ví dụ mẫu và công thức tính đã được tóm tắt.
-3. **Thực hành:** Em có thể đặt câu hỏi chi tiết về bất kỳ phép tính hoặc bài tập nào trong tài liệu này để thầy cô AI giảng chi tiết nhé!`;
+3. **Thực hành:** Em có thể đặt câu hỏi chi tiết về bất kỳ phép tính hoặc bài tập nào trong tài liệu này để mình giảng chi tiết nhé!`;
 
     followUps = [
       'Giải thích chi tiết ví dụ trong bài',
@@ -314,9 +338,9 @@ ${docSummary}
       'Tóm tắt lại 3 ý chính của bài học',
     ];
   } else if (queryLower.includes('phân số')) {
-    answer = `🤖 **Trợ lý học tập AI (Góc học được)**
+    answer = `🤖 **Trợ lý học tập AI**
 
-Chào em! Thầy cô AI rất vui được giúp em tìm hiểu môn **${topic}**!
+${greeting} Mình rất vui được giúp em tìm hiểu môn **${topic}**!
 
 ### Bước 1: Khái niệm phân số
 Phân số biểu thị một hoặc nhiều phần bằng nhau được lấy ra từ một đơn vị:
@@ -333,9 +357,9 @@ Em tưởng tượng một chiếc bánh pizza chia đều thành **4 phần b�
       'Cho em bài tập thử sức nhé',
     ];
   } else {
-    answer = `🤖 **Trợ lý học tập AI (Góc học được)**
+    answer = `🤖 **Trợ lý học tập AI**
 
-Chào em! Thầy cô AI gợi ý em giải bài **${context?.lesson || topic}** theo 3 bước:
+${greeting} Mình gợi ý em giải bài **${context?.lesson || topic}** theo 3 bước:
 
 ### Bước 1: Phân tích đề bài
 Xác định đề bài cho những dữ kiện nào và hỏi cái gì.
@@ -346,14 +370,14 @@ Lựa chọn công thức hoặc phép tính thích hợp.
 ### Bước 3: Tính toán và kiểm tra
 Thực hiện phép tính cẩn thận và kiểm tra lại kết quả.
 
-💡 **Mẹo:** Em có thể chọn nút [💡 Gợi ý] hoặc [📖 Giải thích] để được thầy cô hướng dẫn sâu hơn nhé!`;
+💡 **Mẹo:** Em có thể chọn nút [💡 Gợi ý] hoặc [📖 Giải thích] để được mình hướng dẫn sâu hơn nhé!`;
   }
 
   let finalContent = answer;
   if (isHint) {
     finalContent += '\n\n💡 *Gợi ý: Em hãy đọc kỹ lại đề bài và tự suy nghĩ phép tính đầu tiên nhé!*';
   } else if (isExplain) {
-    finalContent += '\n\n📖 *Thầy cô đã giải thích chi tiết khái niệm này cho em.*';
+    finalContent += '\n\n📖 *Mình đã giải thích chi tiết khái niệm này cho em.*';
   }
 
   return {
