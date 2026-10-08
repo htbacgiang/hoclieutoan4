@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { PanelLeftOpen, PanelLeftClose } from 'lucide-react';
+import { CheckCircle2, PartyPopper } from 'lucide-react';
 import ExploreBreadcrumb from '@/components/explore/ExploreBreadcrumb';
 import ExploreSidebar from '@/components/explore/ExploreSidebar';
 import LessonHeader from '@/components/explore/LessonHeader';
@@ -34,7 +34,32 @@ function KhamPhaContent() {
   const [lesson, setLesson] = useState<ApiLesson | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [favoritesMap, setFavoritesMap] = useState<Record<string, boolean>>({});
+  const [completedMap, setCompletedMap] = useState<Record<string, boolean>>({});
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Sync initial completion status from API
+  useEffect(() => {
+    async function loadProgress() {
+      try {
+        const res = await fetch('/api/progress');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            const map: Record<string, boolean> = {};
+            data.forEach((p: { lessonId?: { slug?: string }; completed?: boolean }) => {
+              if (p.lessonId?.slug && p.completed) {
+                map[p.lessonId.slug] = true;
+              }
+            });
+            setCompletedMap((prev) => ({ ...prev, ...map }));
+          }
+        }
+      } catch (_e) {
+        // ignore fallback
+      }
+    }
+    loadProgress();
+  }, []);
 
   useEffect(() => {
     // If no URL slug provided, fetch user's saved active lesson position
@@ -46,8 +71,16 @@ function KhamPhaContent() {
           const data = await res.json();
           if (data.lastLessonSlug) {
             setCurrentSlug(data.lastLessonSlug);
+            if (typeof window !== 'undefined') {
+              const newUrl = `${window.location.pathname}?slug=${data.lastLessonSlug}`;
+              window.history.replaceState({ path: newUrl }, '', newUrl);
+            }
           } else if (localSlug) {
             setCurrentSlug(localSlug);
+            if (typeof window !== 'undefined') {
+              const newUrl = `${window.location.pathname}?slug=${localSlug}`;
+              window.history.replaceState({ path: newUrl }, '', newUrl);
+            }
           }
         } catch (_err) {
           // ignore
@@ -68,15 +101,21 @@ function KhamPhaContent() {
       if (found) {
         setLesson(found);
 
-        // Save position for logged-in user & localStorage
+        // Update URL query parameter without page reload if it doesn't match
         if (typeof window !== 'undefined') {
           localStorage.setItem('toan4_last_active_lesson_slug', found.slug);
+          const currentUrlSlug = new URLSearchParams(window.location.search).get('slug');
+          if (currentUrlSlug !== found.slug) {
+            const newUrl = `${window.location.pathname}?slug=${found.slug}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+          }
         }
+
         fetch('/api/progress/active-lesson', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ slug: found.slug, lessonId: found._id }),
-        }).catch(() => {});
+        }).catch(() => { });
       } else {
         setLesson(null);
       }
@@ -90,6 +129,7 @@ function KhamPhaContent() {
   }, [currentSlug, fetchLesson]);
 
   const isCurrentFavorite = !!favoritesMap[currentSlug];
+  const isCurrentCompleted = !!completedMap[currentSlug];
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -100,6 +140,43 @@ function KhamPhaContent() {
 
   const handleSelectTopic = (slug: string) => {
     setCurrentSlug(slug);
+    if (typeof window !== 'undefined') {
+      const newUrl = `${window.location.pathname}?slug=${slug}`;
+      window.history.pushState({ path: newUrl }, '', newUrl);
+    }
+  };
+
+  const handleToggleComplete = async () => {
+    const nowCompleted = !isCurrentCompleted;
+    setCompletedMap((prev) => ({
+      ...prev,
+      [currentSlug]: nowCompleted,
+    }));
+
+    if (nowCompleted) {
+      showToast(`🎉 Em đã hoàn thành bài học "${lesson?.title || ''}"! (+50 XP)`);
+    } else {
+      showToast(`Đã hủy xác nhận hoàn thành bài học.`);
+    }
+
+    try {
+      if (lesson) {
+        await fetch('/api/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lessonId: lesson._id,
+            exerciseTitle: lesson.title,
+            completed: nowCompleted,
+            score: 10,
+            xpEarned: nowCompleted ? 50 : 0,
+            progressPercent: nowCompleted ? 100 : 0,
+          }),
+        });
+      }
+    } catch (e) {
+      console.error('Error saving progress:', e);
+    }
   };
 
   const handleShare = () => {
@@ -203,10 +280,12 @@ function KhamPhaContent() {
 
           {/* RIGHT SIDEBAR */}
           <aside className="w-full lg:w-[280px] xl:w-[310px] shrink-0 space-y-4 sm:space-y-5 px-3 sm:px-0">
-            {/* Actions: Yêu thích & Chia sẻ */}
+            {/* Actions: Yêu thích, Chia sẻ & Hoàn thành bài */}
             <LessonActions
-              key={`actions-${currentSlug}-${isCurrentFavorite}`}
+              key={`actions-${currentSlug}-${isCurrentFavorite}-${isCurrentCompleted}`}
               initialFavorite={isCurrentFavorite}
+              isCompleted={isCurrentCompleted}
+              onToggleComplete={handleToggleComplete}
               subject={currentLessonData.subject}
               category={currentLessonData.category}
               title={currentLessonData.title}

@@ -8,6 +8,7 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react';
+import { resolveDocumentUrl } from '@/lib/driveHelper';
 
 interface LessonDocumentViewerProps {
   title?: string;
@@ -95,11 +96,13 @@ export default function LessonDocumentViewer({
       return embedUrl;
     }
 
-    // Microsoft Office Online Web Viewer for PPTX / PPT files
+    // Microsoft Office Online Web Viewer for PPTX / PPT files & Google Drive Links
+    if (trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com')) {
+      const resolved = resolveDocumentUrl(trimmed);
+      return resolved.embedUrl;
+    }
+
     if (trimmed.match(/\.(pptx|ppt)$/i) || (trimmed.startsWith('http') && !trimmed.includes('officeapps.live.com'))) {
-      if (trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com')) {
-        return `https://docs.google.com/gview?url=${encodeURIComponent(trimmed)}&embedded=true`;
-      }
       return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(trimmed)}`;
     }
 
@@ -342,7 +345,7 @@ export default function LessonDocumentViewer({
       {/* Top Header Bar */}
       <div className="flex items-center justify-between gap-3 p-3 sm:p-5 border-b border-slate-100 bg-white">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="px-2.5 py-1 rounded-xl bg-blue-100 text-blue-800 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+          <span className="px-2.5 hidden sm:flex py-1 rounded-xl bg-blue-100 text-blue-800 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5 shrink-0">
             <Presentation className="w-4 h-4 text-blue-600" /> SLIDE BÀI GIẢNG
           </span>
           <h1 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight truncate">
@@ -428,7 +431,7 @@ export default function LessonDocumentViewer({
           {/* Top Control Header */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-3 gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              <span className="px-3 py-1 bg-amber-500 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md shrink-0">
+              <span className="px-3 hidden sm:flex py-1 bg-amber-500 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-md shrink-0">
                 <Presentation className="w-4 h-4" /> TRÌNH CHIẾU BÀI HỌC
               </span>
               <h2 className="text-sm sm:text-base font-bold text-slate-200 truncate max-w-sm sm:max-w-md">{title}</h2>

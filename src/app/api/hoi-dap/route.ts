@@ -13,10 +13,10 @@ export async function POST(req: Request) {
     await connectToDatabase();
 
     const body = await req.json();
-    const { conversationId, message, context, mode = 'ask', image } = body;
+    const { conversationId, message, context, mode = 'ask', image, isRegenerate } = body;
 
-    // Server-side input validation (either message or image must be provided)
-    if ((!message || typeof message !== 'string' || !message.trim()) && !image) {
+    // Server-side input validation (either message or image or isRegenerate must be provided)
+    if ((!message || typeof message !== 'string' || !message.trim()) && !image && !isRegenerate) {
       return NextResponse.json(
         {
           success: false,
@@ -81,14 +81,30 @@ export async function POST(req: Request) {
 
     const convId = activeConversation._id;
 
-    // Save user message to DB
-    const userMessageDoc = await ChatMessage.create({
-      conversationId: convId,
-      role: 'user',
-      content: trimmedMessage,
-      imageUrl: image || undefined,
-      mode: mode as ChatMode,
-    });
+    let userMessageDoc = null;
+
+    if (isRegenerate) {
+      // If regenerating, check if last user message exists or find it
+      const lastUserMsg = await ChatMessage.findOne({ conversationId: convId, role: 'user' }).sort({ createdAt: -1 });
+      userMessageDoc = lastUserMsg;
+
+      // Delete previous assistant response for this conversation if present at the end
+      const lastAssistantMsg = await ChatMessage.findOne({ conversationId: convId, role: 'assistant' }).sort({ createdAt: -1 });
+      if (lastAssistantMsg && lastUserMsg && lastAssistantMsg.createdAt > lastUserMsg.createdAt) {
+        await ChatMessage.findByIdAndDelete(lastAssistantMsg._id);
+      }
+    }
+
+    // If not regenerating or no user message doc exists, create user message doc
+    if (!userMessageDoc) {
+      userMessageDoc = await ChatMessage.create({
+        conversationId: convId,
+        role: 'user',
+        content: trimmedMessage,
+        imageUrl: image || undefined,
+        mode: mode as ChatMode,
+      });
+    }
 
     // Fetch previous messages for context window (last 15 messages)
     const historyDocs = await ChatMessage.find({ conversationId: convId })

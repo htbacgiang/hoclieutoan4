@@ -69,6 +69,71 @@ export function extractPptxText(filePath: string): string {
 }
 
 /**
+ * Extracts text from PDF files by parsing text streams and FlateDecode chunks.
+ */
+export function extractPdfText(filePath: string): string {
+  try {
+    const buf = fs.readFileSync(filePath);
+    const textPieces: string[] = [];
+
+    // Search for stream blocks inside PDF buffer
+    let pos = 0;
+    while (pos < buf.length) {
+      const streamStart = buf.indexOf('stream', pos);
+      if (streamStart === -1) break;
+
+      const streamDataStart =
+        streamStart + 6 + (buf[streamStart + 6] === 0x0d && buf[streamStart + 7] === 0x0a ? 2 : buf[streamStart + 6] === 0x0a ? 1 : 0);
+      const streamEnd = buf.indexOf('endstream', streamDataStart);
+      if (streamEnd === -1) break;
+
+      const rawChunk = buf.subarray(streamDataStart, streamEnd);
+      let decompressed = '';
+
+      try {
+        decompressed = zlib.inflateSync(rawChunk).toString('utf-8');
+      } catch (e) {
+        try {
+          decompressed = zlib.inflateRawSync(rawChunk).toString('utf-8');
+        } catch (e2) {
+          decompressed = rawChunk.toString('utf-8');
+        }
+      }
+
+      if (decompressed) {
+        // Extract text inside Tj / TJ blocks or parenthesis (...)
+        const matches = Array.from(decompressed.matchAll(/\(([^)]+)\)\s*Tj|\[((?:[^\]]+))\]\s*TJ/g));
+        for (const match of matches) {
+          const str = match[1] || match[2];
+          if (str) {
+            // Clean up octal escapes and pdf formatting
+            const cleaned = str
+              .replace(/\\(\d{3})/g, (_, oct) => String.fromCharCode(parseInt(oct, 8)))
+              .replace(/\\([()])/g, '$1')
+              .replace(/<[^>]+>/g, '')
+              .trim();
+            if (cleaned.length > 1 && !cleaned.startsWith('/') && !cleaned.startsWith('Font')) {
+              textPieces.push(cleaned);
+            }
+          }
+        }
+      }
+
+      pos = streamEnd + 9;
+    }
+
+    if (textPieces.length > 0) {
+      return textPieces.join(' ').replace(/\s+/g, ' ');
+    }
+
+    return `Tài liệu PDF: ${path.basename(filePath)}`;
+  } catch (err) {
+    console.error('Error extracting text from PDF file:', err);
+    return `Tài liệu PDF: ${path.basename(filePath)}`;
+  }
+}
+
+/**
  * Normalizes text for fuzzy matching (lowercase, removes accents & symbols).
  */
 function normalizeForMatching(str: string): string {
@@ -152,6 +217,8 @@ export function getDocumentContentForLesson(
   const ext = path.extname(matchedFileName).toLowerCase();
   if (ext === '.pptx' || ext === '.ppt') {
     extractedText = extractPptxText(fullPath);
+  } else if (ext === '.pdf') {
+    extractedText = extractPdfText(fullPath);
   } else if (['.txt', '.md', '.json', '.html', '.csv'].includes(ext)) {
     try {
       extractedText = fs.readFileSync(fullPath, 'utf-8');

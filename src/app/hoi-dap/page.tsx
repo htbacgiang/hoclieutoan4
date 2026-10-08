@@ -11,7 +11,7 @@ import AiTypingIndicator from '@/components/hoi-dap/AiTypingIndicator';
 import AiChatInput from '@/components/hoi-dap/AiChatInput';
 import { getFirstName } from '@/lib/gemini';
 import { ChatMode, LessonContext } from '@/lib/openai';
-import { Clock, PanelLeftClose, PanelLeftOpen, BookOpen, MessageCircleQuestion, X } from 'lucide-react';
+import { Clock, PanelLeftClose, PanelLeftOpen, BookOpen, MessageCircleQuestion, X, RotateCcw } from 'lucide-react';
 
 function HoiDapContent() {
   const searchParams = useSearchParams();
@@ -227,6 +227,74 @@ function HoiDapContent() {
     }
   };
 
+  // Regenerate / Retry response if not satisfied
+  const handleRegenerate = async (targetMsgId?: string) => {
+    if (loading) return;
+
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+    if (!lastUserMsg && !activeConversationId) return;
+
+    // Remove last assistant message from UI state while regenerating
+    setMessages((prev) => {
+      if (prev.length > 0 && prev[prev.length - 1].role === 'assistant') {
+        return prev.slice(0, -1);
+      }
+      return prev;
+    });
+
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/hoi-dap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: activeConversationId || undefined,
+          message: lastUserMsg?.content || 'Hãy giải thích cặn kẽ và đầy đủ ý hơn',
+          context,
+          mode: lastUserMsg?.mode || 'ask',
+          image: lastUserMsg?.imageUrl,
+          isRegenerate: true,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        const aiMsg: ChatMessageData = {
+          id: data.message?.id || 'ai_' + Math.random().toString(36).substring(2, 9),
+          role: 'assistant',
+          content: data.message?.content || 'Đã tạo lại phản hồi đầy đủ cho em.',
+          mode: data.message?.mode || lastUserMsg?.mode || 'ask',
+          suggestedFollowUps: data.message?.suggestedFollowUps || [],
+          createdAt: data.message?.createdAt,
+          isNew: true,
+        };
+
+        setMessages((prev) => [...prev, aiMsg]);
+      } else {
+        const errorMsg: ChatMessageData = {
+          id: 'err_' + Math.random().toString(36).substring(2, 9),
+          role: 'assistant',
+          content: data.error?.message || 'Trợ lý AI đang bận một chút. Em thử tạo lại sau nhé.',
+          isNew: true,
+        };
+        setMessages((prev) => [...prev, errorMsg]);
+      }
+    } catch (err) {
+      console.error('API Regenerate Error:', err);
+      const errorMsg: ChatMessageData = {
+        id: 'err_' + Math.random().toString(36).substring(2, 9),
+        role: 'assistant',
+        content: 'Trợ lý AI đang bận một chút. Em thử lại sau nhé.',
+        isNew: true,
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="h-[calc(100dvh-64px)] sm:h-[calc(100vh-80px)] bg-[#F5FAFF] text-[#123B72] flex flex-col overflow-hidden">
       {/* Dynamic Breadcrumb */}
@@ -339,13 +407,18 @@ function HoiDapContent() {
                     </p>
                   </div>
                 ) : (
-                  messages.map((msg) => (
+                  messages.map((msg, idx) => (
                     <AiChatMessage
                       key={msg.id}
                       message={msg}
                       userName={currentUser?.name || 'Học sinh'}
                       userAvatar={currentUser?.avatar}
                       onSelectFollowUp={(q) => handleSendMessage(q)}
+                      onRegenerate={
+                        msg.role === 'assistant' && idx === messages.length - 1 && !loading
+                          ? () => handleRegenerate(msg.id)
+                          : undefined
+                      }
                     />
                   ))
                 )}
@@ -353,6 +426,8 @@ function HoiDapContent() {
                 {loading && <AiTypingIndicator />}
                 <div ref={messagesEndRef} />
               </div>
+
+
 
               {/* Chat Input Bar */}
               <div className="shrink-0 border-t border-slate-100 bg-white">

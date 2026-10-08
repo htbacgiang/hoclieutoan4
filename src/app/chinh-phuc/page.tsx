@@ -18,8 +18,13 @@ import {
   Zap,
   ArrowRight,
   FileCode,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Maximize2,
+  Minimize2,
+  ExternalLink,
+  Folder
 } from 'lucide-react';
+import { resolveDocumentUrl } from '@/lib/driveHelper';
 
 export type ExamType = 'MID_TERM_1' | 'FINAL_TERM_1' | 'MID_TERM_2' | 'FINAL_TERM_2' | 'MID_TERM' | 'FINAL_TERM' | 'HOMEWORK' | 'PRACTICE';
 
@@ -57,6 +62,7 @@ export default function ChinhPhucPage() {
 
   // Preview Modal
   const [previewItem, setPreviewItem] = useState<TestResource | null>(null);
+  const [isModalFullscreen, setIsModalFullscreen] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchTestResources() {
@@ -412,78 +418,164 @@ export default function ChinhPhucPage() {
         )}
       </div>
 
-      {/* Document Preview Modal */}
-      {previewItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 relative border border-slate-100 max-h-[90vh] flex flex-col">
+      {/* Document Preview Modal - Full File Viewer */}
+      {previewItem && (() => {
+        const urlInfo = resolveDocumentUrl(previewItem.url);
 
-            {/* Modal Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  {getExamBadge(previewItem.examType)}
-                  <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold ${previewItem.type === 'WORD' ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'
-                    }`}>
-                    {previewItem.type === 'WORD' ? 'Tệp Word (.docx)' : 'Tệp PDF (.pdf)'}
-                  </span>
+        return (
+          <div
+            className={`fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm transition-all ${isModalFullscreen ? 'p-0' : 'p-2 sm:p-4'
+              }`}
+          >
+            <div
+              className={`bg-white shadow-2xl flex flex-col transition-all duration-200 overflow-hidden ${isModalFullscreen
+                ? 'w-full h-full rounded-none p-3 sm:p-4 border-0'
+                : 'w-full h-[95vh] container rounded-2xl p-4 sm:p-6 border border-slate-200'
+                }`}
+            >
+
+              {/* Modal Header */}
+              <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 shrink-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="hidden sm:flex items-center gap-2 shrink-0">
+                    {getExamBadge(previewItem.examType)}
+                    <span
+                      className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold ${previewItem.type === 'WORD' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-red-50 text-red-700 border border-red-200'
+                        }`}
+                    >
+                      {previewItem.type === 'WORD' ? 'Tệp Word (.docx)' : 'Tệp PDF (.pdf)'}
+                    </span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 truncate">
+                    {previewItem.title}
+                  </h3>
                 </div>
-                <h3 className="text-lg font-extrabold text-slate-900 line-clamp-1">{previewItem.title}</h3>
+
+                {/* Action Controls */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href={urlInfo.directUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+                    title="Mở trong cửa sổ trình duyệt mới"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Mở cửa sổ mới</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsModalFullscreen(!isModalFullscreen)}
+                    className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                    title={isModalFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}
+                  >
+                    {isModalFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreviewItem(null);
+                      setIsModalFullscreen(false);
+                    }}
+                    className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+                    title="Đóng"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
-              <button
-                onClick={() => setPreviewItem(null)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-all"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+              {/* Modal Body - Full Document / Folder Viewer */}
+              <div className="flex-1 my-3 bg-slate-900 rounded-2xl overflow-hidden relative border border-slate-800 shadow-inner flex flex-col min-h-0">
+                {urlInfo.type === 'GOOGLE_DRIVE_FOLDER' ? (
+                  <div className="w-full h-full bg-slate-950 text-white p-6 flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="w-16 h-16 rounded-3xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center mx-auto shadow-lg shadow-blue-500/10">
+                      <Folder className="w-8 h-8" />
+                    </div>
+                    <div className="space-y-1.5 max-w-md">
+                      <h4 className="text-lg font-extrabold text-white">Thư Mục Google Drive</h4>
+                      <p className="text-xs text-slate-400 leading-relaxed">
+                        Đây là đường dẫn Thư mục Google Drive (chứa nhiều tệp tài liệu). Theo quy định bảo mật của Google, Thư mục không thể xem trực tiếp bên trong ô xem trước.
+                      </p>
+                    </div>
 
-            {/* Modal Body / Viewer */}
-            <div className="flex-1 min-h-[400px] bg-slate-100 rounded-2xl overflow-hidden relative border border-slate-200">
-              {previewItem.type === 'PDF' ? (
-                <iframe
-                  src={`${previewItem.url}#toolbar=0`}
-                  className="w-full h-full min-h-[400px]"
-                  title={previewItem.title}
-                />
-              ) : (
-                <iframe
-                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(previewItem.url)}&embedded=true`}
-                  className="w-full h-full min-h-[400px]"
-                  title={previewItem.title}
-                />
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-              <p className="text-xs text-slate-500">
-                {previewItem.description || 'Xem trước trực tuyến tài liệu học tập.'}
-              </p>
-
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <button
-                  onClick={() => setPreviewItem(null)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs w-full sm:w-auto"
-                >
-                  Đóng
-                </button>
-                <a
-                  href={previewItem.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download
-                  className={`px-6 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto ${previewItem.type === 'WORD' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'
-                    }`}
-                >
-                  <Download className="w-4 h-4" /> Tải về máy
-                </a>
+                    <a
+                      href={urlInfo.directUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>Mở Thư Mục Google Drive Trong Tab Mới</span>
+                    </a>
+                  </div>
+                ) : urlInfo.type === 'GOOGLE_DRIVE_FILE' ? (
+                  <iframe
+                    src={urlInfo.embedUrl}
+                    className="w-full h-full border-0 bg-slate-900"
+                    title={previewItem.title}
+                  />
+                ) : previewItem.type === 'PDF' ? (
+                  urlInfo.embedUrl.startsWith('/') || urlInfo.embedUrl.includes(window.location.host) ? (
+                    <iframe
+                      src={`${urlInfo.embedUrl}#toolbar=1&navpanes=1&view=FitH`}
+                      className="w-full h-full border-0 bg-slate-800"
+                      title={previewItem.title}
+                    />
+                  ) : (
+                    <iframe
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(urlInfo.embedUrl)}&embedded=true`}
+                      className="w-full h-full border-0 bg-white"
+                      title={previewItem.title}
+                    />
+                  )
+                ) : (
+                  <iframe
+                    src={`https://docs.google.com/viewer?url=${encodeURIComponent(urlInfo.embedUrl)}&embedded=true`}
+                    className="w-full h-full border-0 bg-white"
+                    title={previewItem.title}
+                  />
+                )}
               </div>
-            </div>
 
+              {/* Modal Footer */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1 shrink-0">
+                <p className="text-xs text-slate-500 truncate max-w-xl">
+                  {previewItem.description || 'Xem trước trực tuyến toàn bộ tài liệu học tập & đề thi.'}
+                </p>
+
+                <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreviewItem(null);
+                      setIsModalFullscreen(false);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+                  >
+                    Đóng
+                  </button>
+                  <a
+                    href={previewItem.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    className={`px-5 py-2 rounded-xl font-bold text-xs text-white shadow-md flex items-center justify-center gap-2 transition-all ${previewItem.type === 'WORD'
+                      ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'
+                      : 'bg-red-600 hover:bg-red-700 shadow-red-500/20'
+                      }`}
+                  >
+                    <Download className="w-4 h-4" /> Tải về máy
+                  </a>
+                </div>
+              </div>
+
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
     </div>
   );

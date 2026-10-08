@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Bot, User, ThumbsUp, ThumbsDown, Copy, Check, Lightbulb } from 'lucide-react';
+import { Bot, User, ThumbsUp, ThumbsDown, Copy, Check, Lightbulb, RotateCcw } from 'lucide-react';
 import { ChatMode } from '@/lib/openai';
 
 export interface ChatMessageData {
@@ -21,6 +21,7 @@ interface AiChatMessageProps {
   userName?: string;
   userAvatar?: string;
   onSelectFollowUp?: (followUp: string) => void;
+  onRegenerate?: () => void;
 }
 
 function formatMathContent(content: string): string {
@@ -47,6 +48,7 @@ export default function AiChatMessage({
   userName = 'Học sinh',
   userAvatar,
   onSelectFollowUp,
+  onRegenerate,
 }: AiChatMessageProps) {
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
@@ -224,22 +226,35 @@ export default function AiChatMessage({
               )}
             </div>
 
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1 text-[11px] font-semibold text-[#6680A3] hover:text-[#1261B5] p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="text-emerald-600 font-bold">Đã sao chép</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Sao chép</span>
-                </>
+            <div className="flex items-center gap-1.5">
+              {onRegenerate && (
+                <button
+                  onClick={onRegenerate}
+                  className="flex items-center gap-1 text-[11px] font-semibold text-[#1261B5] hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                  title="Tạo lại câu trả lời khác nếu chưa vừa ý"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Thử lại</span>
+                </button>
               )}
-            </button>
+
+              <button
+                onClick={handleCopy}
+                className="flex items-center gap-1 text-[11px] font-semibold text-[#6680A3] hover:text-[#1261B5] p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-emerald-600 font-bold">Đã sao chép</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Sao chép</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
       </div>
